@@ -1,4 +1,4 @@
-### Python 3.11 가상환경 생성
+### Python 3.12 가상환경 생성
 `python3.12 -m venv venv`
 
 ### 가상환경 활성화 (OS별)
