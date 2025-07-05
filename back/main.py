@@ -1,12 +1,13 @@
 import os
 from typing import List, Any
-from fastapi import FastAPI, Request, HTTPException, status, Depends
+from fastapi import FastAPI, Request, HTTPException, status, Depends, Body
 from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import aiohttp
 import asyncio
+from bedrock import Bedrock, prompt, system_prompt
 
 load_dotenv()
 
@@ -94,11 +95,19 @@ async def get_pulls(repo: str, token: str = Depends(get_github_token)) -> List[P
             data = await resp.json()
     return [PullRequest(id=pr["id"], title=pr["title"], number=pr["number"], state=pr["state"]) for pr in data]
 
-@app.post("/scan")
-async def scan_pr(request: ScanRequest) -> dict:
-    # 실제 분석 로직은 추후 구현
-    return {"message": "검사 요청 완료", "pr_number": request.pr_number}
-
-@app.get("/scan/{pr_id}", response_model=ScanResult)
-async def get_scan_result(pr_id: int) -> ScanResult:
-    return ScanResult(pr_number=pr_id, results=[{"type": "PII", "result": False, "accuracy": 100}]) 
+@app.post("/analyze-diff")
+async def analyze_diff_api(data: dict = Body(...)):
+    diff = data.get("diff", "")
+    if not diff:
+        return {"error": "diff 값이 필요합니다."}
+    REGION = "us-west-2"
+    MODEL_ID = "anthropic.claude-3-sonnet-20240229-v1:0"
+    MAX_TOKENS = 512
+    TEMPERATURE = 0.3
+    TOP_P = 0.9
+    full_prompt = prompt.replace("{diff}", diff)
+    br = Bedrock(REGION)
+    response, input_tokens, output_tokens = br.send_prompt(
+        full_prompt, system_prompt, MODEL_ID, MAX_TOKENS, TEMPERATURE, TOP_P
+    )
+    return {"result": response, "input_tokens": input_tokens, "output_tokens": output_tokens}

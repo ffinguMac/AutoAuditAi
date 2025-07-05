@@ -15,16 +15,30 @@ const PRListPage = () => {
     }).then(res => setPrs(res.data));
   }, []);
 
-  const handleScanPR = (pr) => {
+  const handleScanPR = async (pr) => {
     const repo = localStorage.getItem('selected_repo');
     const token = localStorage.getItem('github_token');
-    axios.post('http://localhost:8000/scan', {
-      repo,
-      pr_number: pr.number
-    }, {
-      headers: { Authorization: `token ${token}` }
-    }).then(() => {
-      localStorage.setItem('scan_pr_number', pr.number);
+    // 1. PR diff 가져오기
+    const diffResp = await fetch(
+      `https://api.github.com/repos/${repo}/pulls/${pr.number}`,
+      {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github.v3.diff'
+        }
+      }
+    );
+    const diff = await diffResp.text();
+
+    // 2. diff를 /analyze-diff로 전달
+    axios.post('http://localhost:8000/analyze-diff', {
+      diff
+    }).then(res => {
+      if (res.data && res.data.result) {
+        localStorage.setItem('risk_result', JSON.stringify(res.data.result));
+      } else {
+        localStorage.removeItem('risk_result');
+      }
       navigate('/result');
     });
   };
