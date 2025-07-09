@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 import aiohttp
 import asyncio
-from bedrock import Bedrock, prompt, system_prompt
+from .bedrock import Bedrock, prompt, system_prompt
 
 load_dotenv()
 
