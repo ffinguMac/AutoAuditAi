@@ -183,8 +183,8 @@ if __name__ == '__main__':
     MODEL_ID = "anthropic.claude-3-sonnet-20240229-v1:0"
     # MODEL_ID = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
     # MODEL_ID = "us.deepseek.r1-v1:0"
-    diff = """diff파일 정보"""
-    prompt = prompt.replace("{diff}", diff)
+    prompt = "안녕?"
+    system_prompt = ""
     MAX_TOKENS = 512
     TEMPERATURE = 0.5
     TOP_P = 0.9
