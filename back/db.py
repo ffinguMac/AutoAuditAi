@@ -60,3 +60,8 @@ def get_collection(collection_name):
         return db[collection_name]
     else:
         raise ValueError(f"{collection_name} 컬렉션이 존재하지 않습니다.")
+
+
+def find_one(collection_name, query):
+    db = get_db()
+    return db[collection_name].find_one(query)

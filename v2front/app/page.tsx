@@ -12,7 +12,6 @@ import { useRouter } from "next/navigation"
 export default function AutoAuditLanding() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
-
   const { user, login } = useAuth()
   const router = useRouter()
 

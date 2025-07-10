@@ -120,7 +120,7 @@ export default function Dashboard() {
     })
     console.log(`Auditing completed for PR #${prNumber}`)
   }
-
+  console.log(user);
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <div className="flex">
@@ -130,8 +130,9 @@ export default function Dashboard() {
             {/* User Profile */}
             <div className="flex items-center space-x-3 mb-6">
               <Avatar className="w-10 h-10">
+
                 <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
-                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                <AvatarFallback>{user.name}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <h3 className="text-white font-semibold">{user.name}</h3>
