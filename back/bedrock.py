@@ -100,7 +100,8 @@ if __name__ == '__main__':
     TOP_P = 0.9
     br = Bedrock(REGION)
     # 비추론 모델 (단일 요청)
-    res = br.send_prompt(prompt, system_prompt, MODEL_ID, MAX_TOKENS, TEMPERATURE, TOP_P)
+    res, in_, out_ = br.send_prompt(prompt, system_prompt, MODEL_ID, MAX_TOKENS, TEMPERATURE, TOP_P)
+
     print(res)
 
 

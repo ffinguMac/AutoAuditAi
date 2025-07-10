@@ -35,6 +35,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+REGION = "us-west-2"
+MODEL_ID = "anthropic.claude-3-sonnet-20240229-v1:0"
+MAX_TOKENS = 512
+TEMPERATURE = 0.3
+TOP_P = 0.9
+br = Bedrock(REGION)
 
 class Repo(BaseModel):
     name: str
@@ -57,6 +63,7 @@ class PullRequest(BaseModel):
     additions: int = 0
     deletions: int = 0
     changed_files: int = 0
+    audit_state: str = 0
 
 
 class ScanRequest(BaseModel):
@@ -167,6 +174,7 @@ async def get_pulls(repo: str, token: str = Depends(get_github_token)) -> List[P
             additions=pr.get("additions", 0),
             deletions=pr.get("deletions", 0),
             changed_files=pr.get("changed_files", 0),
+            audit_state = pr.get("audit_state", 0)
         )
         for pr in data
     ]
@@ -177,13 +185,9 @@ async def analyze_diff_api(data: dict = Body(...)):
     diff = data.get("diff", "")
     if not diff:
         return {"error": "diff 값이 필요합니다."}
-    REGION = "us-west-2"
-    MODEL_ID = "anthropic.claude-3-sonnet-20240229-v1:0"
-    MAX_TOKENS = 512
-    TEMPERATURE = 0.3
-    TOP_P = 0.9
+
     full_prompt = prompt.replace("{diff}", diff)
-    br = Bedrock(REGION)
+
     response, input_tokens, output_tokens = br.send_prompt(
         full_prompt, system_prompt, MODEL_ID, MAX_TOKENS, TEMPERATURE, TOP_P
     )
