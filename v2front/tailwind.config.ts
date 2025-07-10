@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import scrollbarHide from 'tailwind-scrollbar-hide';
 
 // all in fixtures is set to tailwind v3 as interims solutions
 
@@ -93,6 +94,9 @@ const config: Config = {
   		}
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    scrollbarHide
+  ],
 };
 export default config;

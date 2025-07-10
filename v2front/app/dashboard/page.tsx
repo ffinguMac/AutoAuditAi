@@ -120,13 +120,12 @@ export default function Dashboard() {
     })
     console.log(`Auditing completed for PR #${prNumber}`)
   }
-  console.log(user);
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-80 bg-black/20 backdrop-blur-md border-r border-white/10 min-h-screen">
-          <div className="p-6">
+        <div className="w-80 bg-black/20 backdrop-blur-md border-r border-white/10 h-screen">
+          <div className="p-6 h-full overflow-y-auto scrollbar-hide">
             {/* User Profile */}
             <div className="flex items-center space-x-3 mb-6">
               <Avatar className="w-10 h-10">
@@ -171,7 +170,7 @@ export default function Dashboard() {
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-2">
-                        <h5 className="text-white font-medium text-sm">{repo.name}</h5>
+                        <h5 className="text-white font-medium text-sm truncate overflow-hidden whitespace-nowrap">{repo.name}</h5>
                         <div className="flex items-center space-x-1">
                           {repo.isPrivate ? (
                             <Lock className="w-3 h-3 text-gray-400" />
@@ -202,7 +201,7 @@ export default function Dashboard() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-8">
+        <div className="flex-1 p-8 h-screen overflow-y-auto scrollbar-hide">
           {selectedRepo ? (
             <div>
               {/* Repository Header */}

@@ -1,5 +1,7 @@
 import os
 from typing import List, Any
+from wsgiref.validate import header_re
+
 from fastapi import FastAPI, Request, HTTPException, status, Depends, Body
 from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,6 +9,9 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 import aiohttp
 import asyncio
+
+from urllib3 import request
+
 from .bedrock import Bedrock, prompt, system_prompt
 
 import db
@@ -34,6 +39,10 @@ app.add_middleware(
 class Repo(BaseModel):
     name: str
     full_name: str
+    description: str = ""
+    language: str = "Unknown"
+    stars: int = 0
+    is_private: bool = False
 
 
 class PullRequest(BaseModel):
@@ -41,6 +50,13 @@ class PullRequest(BaseModel):
     title: str
     number: int
     state: str
+    description: str = ""
+    author: dict
+    created_at: str = ""
+    updated_at: str = ""
+    additions: int = 0
+    deletions: int = 0
+    changed_files: int = 0
 
 
 class ScanRequest(BaseModel):
@@ -57,6 +73,8 @@ async def get_github_token(request: Request) -> str:
     token = request.headers.get("Authorization")
     if not token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No token provided")
+    payload = verify_jwt_token(request)
+    token = payload.get("github_token")
     return token
 
 
@@ -104,25 +122,54 @@ async def github_callback(code: str) -> RedirectResponse:
 @app.get("/repos", response_model=List[Repo])
 async def get_repos(token: str = Depends(get_github_token)) -> List[Repo]:
     url = "https://api.github.com/user/repos"
-    headers = {"Authorization": token}
+    headers = {"Authorization": f"Bearer {token}"}
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=headers) as resp:
             if resp.status != 200:
-                return [Repo(name="test-repo", full_name="user/test-repo")]
+                return []
             data = await resp.json()
-    return [Repo(name=repo["name"], full_name=repo["full_name"]) for repo in data]
+
+    return [
+        Repo(
+            name=repo["name"],
+            full_name=repo["full_name"],
+            description=repo.get("description") or "",
+            language=repo.get("language") or "Unknown",
+            stars=repo.get("stargazers_count") or 0,
+            is_private=repo.get("private", False),
+        )
+        for repo in data
+    ]
 
 
 @app.get("/repos/{repo:path}/pulls", response_model=List[PullRequest])
 async def get_pulls(repo: str, token: str = Depends(get_github_token)) -> List[PullRequest]:
     url = f"https://api.github.com/repos/{repo}/pulls"
-    headers = {"Authorization": token}
+    headers = {"Authorization": f"Bearer {token}"}
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=headers) as resp:
             if resp.status != 200:
-                return [PullRequest(id=1, title="테스트 PR", number=1, state="open")]
+                return []
             data = await resp.json()
-    return [PullRequest(id=pr["id"], title=pr["title"], number=pr["number"], state=pr["state"]) for pr in data]
+    return [
+        PullRequest(
+            id=pr["id"],
+            title=pr["title"],
+            number=pr["number"],
+            state=pr["state"],
+            description=pr.get("body") or "",
+            author={
+                "name": pr["user"]["login"],
+                "avatar": pr["user"]["avatar_url"],
+            },
+            created_at=pr.get("created_at") or "",
+            updated_at=pr.get("updated_at") or "",
+            additions=pr.get("additions", 0),
+            deletions=pr.get("deletions", 0),
+            changed_files=pr.get("changed_files", 0),
+        )
+        for pr in data
+    ]
 
 
 @app.post("/analyze-diff")
@@ -192,14 +239,6 @@ async def get_me(request: Request):
     if not token_doc:
         raise HTTPException(status_code=404, detail="사용자 정보를 찾을 수 없습니다.")
 
-    print({
-        "id": user_id,
-        "github_token": token_doc.get("github_access_token"),
-        "githubUsername": username,
-        "avatar": "https://github.com/" + user_id + ".png",
-        "email": None,
-        "name": username,
-    })
     return {
         "id": user_id,
         "github_token": token_doc.get("github_access_token"),
