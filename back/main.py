@@ -12,7 +12,7 @@ import asyncio
 
 from urllib3 import request
 
-from .bedrock import Bedrock, prompt, system_prompt
+from bedrock import Bedrock, prompt, system_prompt
 
 import db
 import jwt

@@ -3,29 +3,30 @@ version: '3.8'
 services:
   backend:
     build:
-      context: .
+      context: ./back
+      dockerfile: Dockerfile
     container_name: backend
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
+      - ./back:/app
     depends_on:
       - mongodb
     environment:
       - MONGO_URI=mongodb://mongodb:27017
-    command: uvicorn back.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
   frontend:
     build:
-      context: ./frontend
+      context: ./front
     container_name: frontend
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend:/app
+      - ./front:/app
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
-    command: pnpm dev
+    command: pnpm dev --hostname 0.0.0.0
 
   mongodb:
     image: mongo:latest

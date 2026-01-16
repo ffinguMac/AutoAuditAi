@@ -1,8 +1,12 @@
+import os
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # 기본 MongoDB 클라이언트 설정
-MONGO_URI = "mongodb://localhost:27017"
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 DB_NAME = "audit_ai"
 
 try:
